@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Http-Requests</string>
+    <string name="deleteRequest">DELETE</string>
+    <string name="getRequest">GET</string>
+    <string name="postRequest">POST</string>
+    <string name="scannerRequest">SCANNER</string>
+    <string name="requestQuestion">Choose the request at the menu !!!</string>
+</resources>
