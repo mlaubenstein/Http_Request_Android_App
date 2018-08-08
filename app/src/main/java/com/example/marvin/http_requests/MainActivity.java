@@ -1,5 +1,6 @@
 package com.example.marvin.http_requests;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -9,12 +10,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Scanner;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,35 +66,28 @@ public class MainActivity extends AppCompatActivity {
         switch(item.getItemId()){
 
             case R.id.getRequest:
-                try {
-                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.VISIBLE );
                     textview.setText("GET Request...");
-                    sendGET(USER_AGENT,urlString,id);
+                    new HttpTask().execute(urlString);
                     progressBar.setVisibility(View.INVISIBLE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
 
             case R.id.postRequest:
-                try {
                     progressBar.setVisibility(View.VISIBLE);
                     textview.setText("POST Request...");
-                    sendPOST(USER_AGENT,urlString,id);
+
                     progressBar.setVisibility(View.INVISIBLE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
 
             case R.id.deleteRequest:
-                try {
                     progressBar.setVisibility(View.VISIBLE);
                     textview.setText("DELETE Request...");
-                    sendDELETE(USER_AGENT,urlString,id);
                     progressBar.setVisibility(View.INVISIBLE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
             case R.id.scannerRequest:
+                    progressBar.setVisibility(View.VISIBLE);
+                    textview.setText("INFORAMTION...");
+                    progressBar.setVisibility(View.INVISIBLE);
 
         }
 
@@ -100,129 +95,70 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private class HttpTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... strURLs) {
+            URL url = null;
+            HttpsURLConnection httpsURLConnection = null;
+            int responseCode;
+            String line;
+            StringBuffer responseBuffer = null;
+            StringBuilder  result;
+            BufferedReader reader;
+            InputStream    inputStream;
 
-    public void sendGET(String USER_AGENT, String urlString, String ID) throws IOException {
+            try {
+                url = new URL(strURLs[0]);
 
-        URL url = new URL(urlString + "/" + ID);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();//make sure it's HTTP and not https
-        int responseCode;
-        StringBuffer responseBuffer;
+                httpsURLConnection = (HttpsURLConnection) url.openConnection();
+                httpsURLConnection.setRequestMethod("GET");
+                httpsURLConnection.setRequestProperty("User-Agent",USER_AGENT);
 
-        try{
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("User-Agent", USER_AGENT);
-        }catch (IOException e){
-            //TODO
+                responseCode = httpsURLConnection.getResponseCode();
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    inputStream = url.openStream();
+                    reader     = new BufferedReader(new InputStreamReader(inputStream));
+                    result = new StringBuilder();
+
+
+                    responseBuffer = getInputStream(httpsURLConnection);
+                    textview.setText(responseBuffer.toString());
+
+                }
+                return responseBuffer.toString();
+            } catch (IOException e) {
+                return "Unable to connect";
+            }
+
         }
 
-        //responseCode = connection.getResponseCode();
-        textview.setText("\nSending 'GET' request to URL : "  + url);
-        //textview.setText("\nResponse Code : "                 + responseCode);
-
-        responseBuffer = getInputStream ( connection );
-
-        print (responseBuffer.toString());
-
-        boolean finished = true;
-    }
-
-
-
-    public void sendDELETE(String USER_AGENT, String urlString, String ID) throws IOException {
-
-        URL url = new URL(urlString + "/" + ID);
-        int responseCode;
-        StringBuffer responseBuffer;
-
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        try {
-            connection.setRequestMethod("DELETE");
-            connection.setRequestProperty("UserAgent", USER_AGENT);
-
-        } catch (IOException e) {
-            //TODO
+        @Override
+        protected void onPostExecute(String result) {
+            textview.setText(result);
         }
-
-        //responseCode = connection.getResponseCode();
-        textview.setText("\nSending 'DELETE' request to URL : " + url);
-        //textview.setText("\nResponse Code : " + responseCode);
-
-        responseBuffer = getInputStream(connection);
-        textview.setText(responseBuffer.toString());
     }
 
 
 
-    private boolean finished = false;
 
-    public void sendPOST(String USER_AGENT, String urlString, String ID) throws IOException {
+    public void setHasOptionMenu(boolean b) {
 
-        URL url;
-        int responseCode;
-        HttpURLConnection connection;
-        DataOutputStream dataOutputStream;
-        StringBuffer responseBuffer;
-        String author,title,random;
-
-        url = new URL( urlString );
-        connection = (HttpURLConnection) url.openConnection();
-
-        try {
-            connection.setRequestMethod     ( "POST" );//
-            connection.setRequestProperty   ( "User-Agent", USER_AGENT );
-            connection.setRequestProperty   ( "Content-Type", "application/json" );
-
-            connection.setDoInput   ( true );
-            connection.setDoOutput  ( true );
-        }catch (IOException e){
-            //TODO
-        }
-
-        title  = scanTitle  ();
-        author = scanAuthor ();
-        random = scanRandom ();
-        dataOutputStream = new DataOutputStream(connection.getOutputStream()); //IOException needed
-        dataOutputStream.writeBytes ( "{ \"title\":          \"" +title+"\","+
-                "\"author\":        \"" +author+"\","+
-                "\"Keine Ahnung\":  \"" +random+"\","+
-                "\"id\":            " +ID    +"}"
-        );
-        dataOutputStream.flush();
-        dataOutputStream.close();
-
-
-       // responseCode = connection.getResponseCode();
-        textview.setText( "\nSending 'POST' request to URL : "    + url);
-       // textview.setText( "\nResponse Code : "                    + responseCode);
-        textview.setText("\nResponse Message : "                 + connection.getResponseMessage () );
-
-        responseBuffer = getInputStream ( connection );
-
-        print ( responseBuffer.toString() );
-        //TODO : make output readable, by line break, after every comma
-
-        //connection.disconnect ();//Tried
-        dataOutputStream.close ();
-
-        //Try to solve that todo in the main
-        finished = true;
-        finished ();
     }
 
-    private boolean finished(){
-        return finished;
-    }
 
-    public static StringBuffer getInputStream(HttpURLConnection connection) throws IOException {
+    public static StringBuffer getInputStream(HttpsURLConnection connection) throws IOException {
 
         StringBuffer responseBuffer;
         BufferedReader inBufferedReader;
         String inputLine;
 
-        inBufferedReader = new BufferedReader ( new InputStreamReader(connection.getInputStream()));
+        inBufferedReader = new BufferedReader ( new InputStreamReader (connection.getInputStream()));
+        //System.out.println ( "inBufferedReader : " + inBufferedReader );
         responseBuffer = new StringBuffer();
+        //System.out.println ( "responseBuffer : " + responseBuffer );
 
+        //writing inBufferReader line by line into the responseBuffer
         while ((inputLine = inBufferedReader.readLine()) != null) {
             responseBuffer.append(inputLine);
         }
@@ -232,53 +168,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public String scanTitle () {
 
-        textview.setText ( "\nSet a Title : " );
-        Scanner scanner = new Scanner ( System.in );
-        String TitleReturnValue = scanner.nextLine ();
-        return TitleReturnValue;
-    }
-    public String scanAuthor () {
 
-        textview.setText ( "\nSet a Author : " );
-        Scanner scanner = new Scanner ( System.in );
-        String AuthorReturnValue = scanner.nextLine ();
-        return AuthorReturnValue;
-    }
-    public String scanRandom() {
-
-        textview.setText ( "\nSet a Random Property : " );
-        Scanner scanner = new Scanner ( System.in );
-        String RandomReturnValue = scanner.nextLine ();
-        return RandomReturnValue;
-    }
-
-    public void print(String InputStream){
-
-        for (int i = 0; i<InputStream.length (); i++){
-            String SingleSign = String.valueOf ( InputStream.charAt ( i ) );
-            if (SingleSign.equals (",") ) {
-                textview.setText ( ",");
-                textview.setText( "\t" );
-            }
-            else if (SingleSign.equals ( "}" )){
-                textview.setText ( "" );
-                textview.setText ( "}" );
-                i++;
-                textview.setText ( "" );
-            }
-            else if (SingleSign.equals ( "{" )){
-                textview.setText ( "{" );
-                textview.setText ( "\t" );
-            }
-            else {
-                textview.setText( SingleSign );
-            }
-        }
-    }
-
-        public void setHasOptionMenu(boolean b) {
-
-    }
 }
