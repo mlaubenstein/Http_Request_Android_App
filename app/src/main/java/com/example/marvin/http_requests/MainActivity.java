@@ -1,173 +1,101 @@
 package com.example.marvin.http_requests;
 
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import com.example.marvin.http_requests.Data.Item;
+import com.example.marvin.http_requests.Data.SOAnswersResponse;
 
-import javax.net.ssl.HttpsURLConnection;
+import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
+   
+    private AnswersAdapter Adapter;
+    private RecyclerView RecyclerView;
+    private SOService Service;
 
-    private static final String USER_AGENT ="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0.2 Safari/604.4.7";
-    private TextView textview;
-    private ProgressBar progressBar;
-
+    public static final String EXTRA_SCORE              = "com.example.marvin.http_request.EXTRA_SCORE";
+    public static final String EXTRA_ANSWERID           = "com.example.marvin.http_request.EXTRA_ANSWERID";
+    public static final String EXTRA_LASTACTIVITYDATE   = "com.example.marvin.http_request.EXTRA_LASTACTIVITYDATE";
+    public static final String EXTRA_LASTEDITDATE       = "com.example.marvin.http_request.EXTRA_LASTEDITDATE";
+    public static final String EXTRA_QUESTIONID         = "com.example.marvin.http_request.EXTRA_QUESTIONID";
+    public static final String EXTRA_NAME               = "com.example.marvin.http_request.EXTRA_NAME";
+    public static final String EXTRA_IMAGE              = "com.example.marvin.http_request.EXTRA_IMAGE";
+    
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    protected void onCreate (Bundle savedInstanceState)  {
+        super.onCreate( savedInstanceState );
+        setContentView(R.layout.activity_main );
 
-         textview       = findViewById(R.id.textView);
-         progressBar    = findViewById(R.id.progressBar);
+        this.Service = APIUtils.getSOService();
+        this.RecyclerView = findViewById(R.id.rv_answers);
+        this.Adapter = new AnswersAdapter(this, new ArrayList<Item>(0), new AnswersAdapter.ItemClickListener() {
 
-         progressBar.setVisibility(View.INVISIBLE);
+            @Override
+            public void onItemClick(Item item) {
 
-         //progressBar.setVisibility(View.VISIBLE);
+                Intent intent = new Intent(MainActivity.this,SecondMain.class);
+
+                intent.putExtra(EXTRA_NAME,             String.valueOf( item.getOwner().getDisplayName()));
+                intent.putExtra(EXTRA_SCORE,            String.valueOf( item.getScore() ));
+                intent.putExtra(EXTRA_ANSWERID,         String.valueOf( item.getAnswerId()));
+                intent.putExtra(EXTRA_QUESTIONID,       String.valueOf( item.getQuestionId() ));
+                intent.putExtra(EXTRA_LASTACTIVITYDATE, String.valueOf( item.getLastActivityDate() ));
+                intent.putExtra(EXTRA_LASTEDITDATE,     String.valueOf( item.getLastEditDate() ));
 
 
-        setHasOptionMenu (true);
+                startActivity(intent);
+
+                //Toast.makeText(MainActivity.this, "The score is " + score, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+         this.RecyclerView.setLayoutManager(layoutManager);
+         this.RecyclerView.setAdapter(this.Adapter);
+         this.RecyclerView.setHasFixedSize(true);
+         RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+         this.RecyclerView.addItemDecoration(itemDecoration);
+
+        loadAnswers();
     }
 
 
+    public void loadAnswers() {
+        this.Service.getAnswers().enqueue(new Callback<SOAnswersResponse>() {
+            @Override
+            public void onResponse(Call<SOAnswersResponse> call, Response<SOAnswersResponse> response) {
 
-    @Override
-    public boolean onCreateOptionsMenu (Menu menu){
-
-
-        getMenuInflater().inflate(R.menu.menu_getrequest,   menu);
-        getMenuInflater().inflate(R.menu.menu_deleterequest,menu);
-        getMenuInflater().inflate(R.menu.menu_postrequest,  menu);
-        getMenuInflater().inflate(R.menu.menu_scanner,      menu);
-
-        return true;
-
-    }
-
-
-
-    @Override
-    public boolean onOptionsItemSelected (MenuItem item){
-
-        String urlString = "https://jsonplaceholder.typicode.com/posts";//TODO
-        String id = "1";
-
-        switch(item.getItemId()){
-
-            case R.id.getRequest:
-                    progressBar.setVisibility(View.VISIBLE );
-                    textview.setText("GET Request...");
-                    new HttpTask().execute(urlString);
-                    progressBar.setVisibility(View.INVISIBLE);
-
-
-            case R.id.postRequest:
-                    progressBar.setVisibility(View.VISIBLE);
-                    textview.setText("POST Request...");
-
-                    progressBar.setVisibility(View.INVISIBLE);
-
-
-            case R.id.deleteRequest:
-                    progressBar.setVisibility(View.VISIBLE);
-                    textview.setText("DELETE Request...");
-                    progressBar.setVisibility(View.INVISIBLE);
-
-            case R.id.scannerRequest:
-                    progressBar.setVisibility(View.VISIBLE);
-                    textview.setText("INFORAMTION...");
-                    progressBar.setVisibility(View.INVISIBLE);
-
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    private class HttpTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... strURLs) {
-            URL url = null;
-            HttpsURLConnection httpsURLConnection = null;
-            int responseCode;
-            String line;
-            StringBuffer responseBuffer = null;
-            StringBuilder  result;
-            BufferedReader reader;
-            InputStream    inputStream;
-
-            try {
-                url = new URL(strURLs[0]);
-
-                httpsURLConnection = (HttpsURLConnection) url.openConnection();
-                httpsURLConnection.setRequestMethod("GET");
-                httpsURLConnection.setRequestProperty("User-Agent",USER_AGENT);
-
-                responseCode = httpsURLConnection.getResponseCode();
-
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    inputStream = url.openStream();
-                    reader     = new BufferedReader(new InputStreamReader(inputStream));
-                    result = new StringBuilder();
-
-
-                    responseBuffer = getInputStream(httpsURLConnection);
-                    textview.setText(responseBuffer.toString());
-
+                if(response.isSuccessful()) {
+                    Adapter.updateAnswers(response.body().getItems());
+                    Log.d("MainActivity", "posts loaded from API");
                 }
-                return responseBuffer.toString();
-            } catch (IOException e) {
-                return "Unable to connect";
+                else {
+                    int statusCode  = response.code();
+                    // handle request errors depending on status code
+                }
             }
 
-        }
+            @Override
+            public void onFailure(Call<SOAnswersResponse> call, Throwable t) {
+                showErrorMessage();
+                Log.d("MainActivity", "error loading from API");
 
-        @Override
-        protected void onPostExecute(String result) {
-            textview.setText(result);
-        }
+            }
+        });
     }
 
-
-
-
-    public void setHasOptionMenu(boolean b) {
-
+    private void showErrorMessage() {
     }
-
-
-    public static StringBuffer getInputStream(HttpsURLConnection connection) throws IOException {
-
-        StringBuffer responseBuffer;
-        BufferedReader inBufferedReader;
-        String inputLine;
-
-        inBufferedReader = new BufferedReader ( new InputStreamReader (connection.getInputStream()));
-        //System.out.println ( "inBufferedReader : " + inBufferedReader );
-        responseBuffer = new StringBuffer();
-        //System.out.println ( "responseBuffer : " + responseBuffer );
-
-        //writing inBufferReader line by line into the responseBuffer
-        while ((inputLine = inBufferedReader.readLine()) != null) {
-            responseBuffer.append(inputLine);
-        }
-        inBufferedReader.close();
-
-        return responseBuffer;
-
-    }
-
 
 
 }

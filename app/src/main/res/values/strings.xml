@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">Http-Requests</string>
-    <string name="deleteRequest">DELETE</string>
-    <string name="getRequest">GET</string>
-    <string name="postRequest">POST</string>
-    <string name="scannerRequest">SCANNER</string>
-    <string name="requestQuestion">Choose the request at the menu !!!</string>
+    <string name="back">BACK...</string>
+    <string name="latest_edit_date">Latest Edit Date:</string>
+    <string name="latest_activity_date">Latest Activity Date:</string>
+    <string name="question_id">Question ID:</string>
+    <string name="answer_id">Answer ID:</string>
+    <string name="score">Score:</string>
+    <string name="data">Data of </string>
 </resources>
