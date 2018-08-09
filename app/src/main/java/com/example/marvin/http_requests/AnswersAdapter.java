@@ -12,20 +12,20 @@ import com.example.marvin.http_requests.Data.Item;
 import java.util.List;
 
 public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.ViewHolder>{
-    private List<Item> mItems;
-    private Context mContext;
-    private ItemClickListener mItemListener;
+    private List<Item> Items;
+    private Context Context;
+    private ItemClickListener ItemListener;
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        public TextView titleTextview;
-        ItemClickListener mItemListener;
+        private TextView            titleTextview;
+        private ItemClickListener   ItemListener;
 
-        public ViewHolder(View itemView, ItemClickListener itemListener) {
+        ViewHolder(View itemView, ItemClickListener itemListener) {
             super(itemView);
-            titleTextview = (TextView) itemView.findViewById(android.R.id.text1);
+            titleTextview = itemView.findViewById(android.R.id.text1);
 
-            this.mItemListener = itemListener;
+            this.ItemListener = itemListener;
             itemView.setOnClickListener(this);
         }
 
@@ -33,53 +33,51 @@ public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.ViewHold
         @Override
         public void onClick(View view) {
             Item item = getItem(getAdapterPosition());
-            this.mItemListener.onItemClick(item);
+            this.ItemListener.onItemClick(item);
             notifyDataSetChanged();
         }
     }
 
-    public AnswersAdapter(Context context, List<Item> posts, ItemClickListener itemListener) {
-        mItems          = posts;
-        mContext        = context;
-        mItemListener   = itemListener;
+    AnswersAdapter(Context context, List<Item> posts, ItemClickListener itemListener) {
+        Items         = posts;
+        Context       = context;
+        ItemListener  = itemListener;
     }
 
 
     @Override
     public AnswersAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        Context context = parent.getContext();
+        Context context         = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
+        View postView           = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
 
-        View postView = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
-
-        ViewHolder viewHolder = new ViewHolder(postView, this.mItemListener);
-        return viewHolder;
+        return new ViewHolder(postView, this.ItemListener);
     }
 
 
     @Override
     public void onBindViewHolder(AnswersAdapter.ViewHolder holder, int position) {
 
-        Item item = mItems.get(position);
+        Item item           = this.Items.get(position);
 
-        TextView textView = holder.titleTextview;
+        TextView textView   = holder.titleTextview;
         textView.setText(item.getOwner().getDisplayName());
     }
 
 
     @Override
     public int getItemCount() {
-        return mItems.size();
+        return Items.size();
     }
 
     public void updateAnswers(List<Item> items) {
-        mItems = items;
+        this.Items = items;
         notifyDataSetChanged();
     }
 
     private Item getItem(int adapterPosition) {
-        return mItems.get(adapterPosition);
+        return this.Items.get(adapterPosition);
     }
 
     public interface ItemClickListener {

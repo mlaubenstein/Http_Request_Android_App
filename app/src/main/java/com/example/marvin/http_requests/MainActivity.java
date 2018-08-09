@@ -2,6 +2,7 @@ package com.example.marvin.http_requests;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,7 +21,6 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
    
     private AnswersAdapter Adapter;
-    private RecyclerView RecyclerView;
     private SOService Service;
 
     public static final String EXTRA_SCORE              = "com.example.marvin.http_request.EXTRA_SCORE";
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_LASTEDITDATE       = "com.example.marvin.http_request.EXTRA_LASTEDITDATE";
     public static final String EXTRA_QUESTIONID         = "com.example.marvin.http_request.EXTRA_QUESTIONID";
     public static final String EXTRA_NAME               = "com.example.marvin.http_request.EXTRA_NAME";
-    public static final String EXTRA_IMAGE              = "com.example.marvin.http_request.EXTRA_IMAGE";
+   // public static final String EXTRA_IMAGE              = "com.example.marvin.http_request.EXTRA_IMAGE";
     
     @Override
     protected void onCreate (Bundle savedInstanceState)  {
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main );
 
         this.Service = APIUtils.getSOService();
-        this.RecyclerView = findViewById(R.id.rv_answers);
+        android.support.v7.widget.RecyclerView recyclerView = findViewById(R.id.rv_answers);
         this.Adapter = new AnswersAdapter(this, new ArrayList<Item>(0), new AnswersAdapter.ItemClickListener() {
 
             @Override
@@ -60,11 +60,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
          RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-         this.RecyclerView.setLayoutManager(layoutManager);
-         this.RecyclerView.setAdapter(this.Adapter);
-         this.RecyclerView.setHasFixedSize(true);
+         recyclerView.setLayoutManager(layoutManager);
+         recyclerView.setAdapter(this.Adapter);
+         recyclerView.setHasFixedSize(true);
          RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
-         this.RecyclerView.addItemDecoration(itemDecoration);
+         recyclerView.addItemDecoration(itemDecoration);
 
         loadAnswers();
     }
@@ -73,20 +73,17 @@ public class MainActivity extends AppCompatActivity {
     public void loadAnswers() {
         this.Service.getAnswers().enqueue(new Callback<SOAnswersResponse>() {
             @Override
-            public void onResponse(Call<SOAnswersResponse> call, Response<SOAnswersResponse> response) {
+            public void onResponse(@NonNull Call<SOAnswersResponse> call, @NonNull Response<SOAnswersResponse> response) {
 
                 if(response.isSuccessful()) {
+                    assert response.body() != null;
                     Adapter.updateAnswers(response.body().getItems());
                     Log.d("MainActivity", "posts loaded from API");
-                }
-                else {
-                    int statusCode  = response.code();
-                    // handle request errors depending on status code
                 }
             }
 
             @Override
-            public void onFailure(Call<SOAnswersResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<SOAnswersResponse> call, Throwable t) {
                 showErrorMessage();
                 Log.d("MainActivity", "error loading from API");
 
