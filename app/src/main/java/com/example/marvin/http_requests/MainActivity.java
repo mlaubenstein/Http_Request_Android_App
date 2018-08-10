@@ -19,7 +19,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-   
+
     private AnswersAdapter Adapter;
     private SOService Service;
 
@@ -29,33 +29,35 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_LASTEDITDATE       = "com.example.marvin.http_request.EXTRA_LASTEDITDATE";
     public static final String EXTRA_QUESTIONID         = "com.example.marvin.http_request.EXTRA_QUESTIONID";
     public static final String EXTRA_NAME               = "com.example.marvin.http_request.EXTRA_NAME";
-   // public static final String EXTRA_IMAGE              = "com.example.marvin.http_request.EXTRA_IMAGE";
-    
+    public static final String EXTRA_IMAGE              = "com.example.marvin.http_request.EXTRA_IMAGE";
+    public static final String EXTRA_LINK               = "com.example.marvin.http_request.EXTRA_LINK";
+
     @Override
     protected void onCreate (Bundle savedInstanceState)  {
         super.onCreate( savedInstanceState );
         setContentView(R.layout.activity_main );
 
         this.Service = APIUtils.getSOService();
-        android.support.v7.widget.RecyclerView recyclerView = findViewById(R.id.rv_answers);
+        final android.support.v7.widget.RecyclerView recyclerView = findViewById(R.id.rv_answers);
         this.Adapter = new AnswersAdapter(this, new ArrayList<Item>(0), new AnswersAdapter.ItemClickListener() {
 
             @Override
             public void onItemClick(Item item) {
 
                 Intent intent = new Intent(MainActivity.this,SecondMain.class);
-
-                intent.putExtra(EXTRA_NAME,             String.valueOf( item.getOwner().getDisplayName()));
-                intent.putExtra(EXTRA_SCORE,            String.valueOf( item.getScore() ));
-                intent.putExtra(EXTRA_ANSWERID,         String.valueOf( item.getAnswerId()));
-                intent.putExtra(EXTRA_QUESTIONID,       String.valueOf( item.getQuestionId() ));
-                intent.putExtra(EXTRA_LASTACTIVITYDATE, String.valueOf( item.getLastActivityDate() ));
-                intent.putExtra(EXTRA_LASTEDITDATE,     String.valueOf( item.getLastEditDate() ));
+                recyclerView.getSolidColor();
+                intent.putExtra(EXTRA_NAME,             String.valueOf( item.getOwner().getDisplayName()    ));
+                intent.putExtra(EXTRA_SCORE,            String.valueOf( item.getScore()                     ));
+                intent.putExtra(EXTRA_ANSWERID,         String.valueOf( item.getAnswerId()                  ));
+                intent.putExtra(EXTRA_QUESTIONID,       String.valueOf( item.getQuestionId()                ));
+                intent.putExtra(EXTRA_LASTACTIVITYDATE, String.valueOf( item.getLastActivityDate()          ));
+                intent.putExtra(EXTRA_LASTEDITDATE,     String.valueOf( item.getLastEditDate()              ));
+                intent.putExtra(EXTRA_IMAGE,            String.valueOf( item.getOwner().getProfileImage()   ));
+                intent.putExtra(EXTRA_LINK,             String.valueOf( item.getOwner().getLink()           ));
 
 
                 startActivity(intent);
 
-                //Toast.makeText(MainActivity.this, "The score is " + score, Toast.LENGTH_SHORT).show();
             }
         });
 
