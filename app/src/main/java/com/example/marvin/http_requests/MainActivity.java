@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
          recyclerView.setAdapter(this.Adapter);
          recyclerView.setHasFixedSize(true);
          RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+
          recyclerView.addItemDecoration(itemDecoration);
 
         loadAnswers();
