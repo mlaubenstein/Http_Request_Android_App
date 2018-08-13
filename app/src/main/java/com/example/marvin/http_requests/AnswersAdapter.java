@@ -13,8 +13,8 @@ import java.util.List;
 
 public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.ViewHolder>{
     private List<Item> Items;
-    private Context Context;
     private ItemClickListener ItemListener;
+    private Context Context;
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 

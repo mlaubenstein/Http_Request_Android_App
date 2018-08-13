@@ -1,8 +1,10 @@
 package com.example.marvin.http_requests;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +15,7 @@ import com.example.marvin.http_requests.Data.Item;
 import com.example.marvin.http_requests.Data.SOAnswersResponse;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -75,18 +78,18 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadAnswers() {
         this.Service.getAnswers().enqueue(new Callback<SOAnswersResponse>() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void onResponse(@NonNull Call<SOAnswersResponse> call, @NonNull Response<SOAnswersResponse> response) {
 
                 if(response.isSuccessful()) {
-                    assert response.body() != null;
-                    Adapter.updateAnswers(response.body().getItems());
+                    Adapter.updateAnswers(Objects.requireNonNull(response.body()).getItems());
                     Log.d("MainActivity", "posts loaded from API");
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<SOAnswersResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<SOAnswersResponse> call, @NonNull Throwable throwable) {
                 showErrorMessage();
                 Log.d("MainActivity", "error loading from API");
 

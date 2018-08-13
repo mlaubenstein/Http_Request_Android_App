@@ -1,16 +1,22 @@
 package com.example.marvin.http_requests;
 
-import android.graphics.drawable.Drawable;
+import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.InputStream;
-import java.net.URL;
 
 public class SecondMain extends AppCompatActivity {
 
@@ -38,15 +44,26 @@ public class SecondMain extends AppCompatActivity {
         TextView textViewLED        = findViewById( R.id.textViewLED );
         textViewLED.setText     ( getIntent().getStringExtra(MainActivity.EXTRA_LASTEDITDATE));
 
-       ImageView imageView          = findViewById( R.id.imageView );
-//        imageView.setImageDrawable(LoadImageFromWebOperations(getIntent()
- //                                   .getStringExtra(MainActivity.EXTRA_IMAGE)));
-        //TODO => funktioniert, aber es wird kein Profilbild angezeigt :(
+
+
+        new DownloadImageFromURL((ImageView)findViewById(R.id.imageView))
+                                            .execute(getIntent()
+                                            .getStringExtra(MainActivity.EXTRA_IMAGE));
+        final ImageView imageView = findViewById(R.id.imageView);
+        final Animation zoomAnimation = AnimationUtils.loadAnimation(this,R.anim.zoom);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imageView.startAnimation(zoomAnimation);
+            }
+        });
+
+
+
 
         TextView link               = findViewById( R.id.link );
         link.setText            ( getIntent().getStringExtra(MainActivity.EXTRA_LINK) );
         link.setMovementMethod  ( LinkMovementMethod.getInstance() );
-
 
 
         Button button               = findViewById( R.id.backbutton );
@@ -61,13 +78,33 @@ public class SecondMain extends AppCompatActivity {
 
     }
 
-    public static Drawable LoadImageFromWebOperations(String url) {
-        try {
-            InputStream is = (InputStream) new URL(url).getContent();
-            return Drawable.createFromStream(is, "src name");
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    @SuppressLint("StaticFieldLeak")
+    private class DownloadImageFromURL extends AsyncTask<String, Void, Bitmap> {
+        ImageView imageView;
 
+        DownloadImageFromURL(ImageView imageView) {
+            this.imageView = imageView;
+            Toast.makeText(getApplicationContext(), "Hier die gewünschten Informationen...", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... urls) {
+            String imageURL = urls[0];
+            Bitmap bimage = null;
+            try {
+                InputStream in = new java.net.URL(imageURL).openStream();
+                bimage = BitmapFactory.decodeStream(in);
+
+            } catch (Exception e) {
+                Log.e("Error Message", e.getMessage());
+                e.printStackTrace();
+            }
+            return bimage;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            imageView.setImageBitmap(result);
+        }
+
+    }
 }
