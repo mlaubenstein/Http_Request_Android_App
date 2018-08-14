@@ -17,14 +17,13 @@ public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.ViewHold
     private Context Context;
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-
         private TextView            titleTextview;
         private ItemClickListener   ItemListener;
 
         ViewHolder(View itemView, ItemClickListener itemListener) {
             super(itemView);
-            titleTextview = itemView.findViewById(android.R.id.text1);
 
+            titleTextview = itemView.findViewById(android.R.id.text1);
             this.ItemListener = itemListener;
             itemView.setOnClickListener(this);
         }
@@ -60,9 +59,9 @@ public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.ViewHold
     public void onBindViewHolder(AnswersAdapter.ViewHolder holder, int position) {
 
         Item item           = this.Items.get(position);
-
         TextView textView   = holder.titleTextview;
-        textView.setText(item.getOwner().getDisplayName());
+                 textView.setText(item.getOwner().getDisplayName());
+
     }
 
 

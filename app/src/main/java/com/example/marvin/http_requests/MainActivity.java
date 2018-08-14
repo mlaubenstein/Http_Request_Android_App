@@ -10,6 +10,8 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.ScaleGestureDetector;
+import android.widget.ImageView;
 
 import com.example.marvin.http_requests.Data.Item;
 import com.example.marvin.http_requests.Data.SOAnswersResponse;
@@ -25,6 +27,11 @@ public class MainActivity extends AppCompatActivity {
 
     private AnswersAdapter Adapter;
     private SOService Service;
+
+    private ScaleGestureDetector mScaleGestureDetector;
+    private float mScaleFactor = 1.0f;
+    private ImageView mImageView;
+
 
     public static final String EXTRA_SCORE              = "com.example.marvin.http_request.EXTRA_SCORE";
     public static final String EXTRA_ANSWERID           = "com.example.marvin.http_request.EXTRA_ANSWERID";

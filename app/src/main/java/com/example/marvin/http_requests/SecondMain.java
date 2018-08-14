@@ -8,9 +8,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -19,6 +19,12 @@ import android.widget.Toast;
 import java.io.InputStream;
 
 public class SecondMain extends AppCompatActivity {
+
+    private ScaleGestureDetector scaleGestureDetector;
+    private float scaleFactor = 1.0f;
+    private ImageView imageView;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,21 +50,20 @@ public class SecondMain extends AppCompatActivity {
         TextView textViewLED        = findViewById( R.id.textViewLED );
         textViewLED.setText     ( getIntent().getStringExtra(MainActivity.EXTRA_LASTEDITDATE));
 
-
-
+        //Bild anzeigen, welches aus URL geladen wurde
         new DownloadImageFromURL((ImageView)findViewById(R.id.imageView))
                                             .execute(getIntent()
                                             .getStringExtra(MainActivity.EXTRA_IMAGE));
-        final ImageView imageView = findViewById(R.id.imageView);
-        final Animation zoomAnimation = AnimationUtils.loadAnimation(this,R.anim.zoom);
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                imageView.startAnimation(zoomAnimation);
-            }
-        });
-
-
+        imageView = findViewById(R.id.imageView);
+        //BILD ZOOMEN EINMALIG MIT REVERSE EFFEKT
+       // final Animation zoomAnimation = AnimationUtils.loadAnimation(this,R.anim.zoom);
+       // imageView.setOnClickListener(new View.OnClickListener() {
+       //     @Override
+       //     public void onClick(View view) {
+       //         imageView.startAnimation(zoomAnimation);
+       //     }
+       // });
+        scaleGestureDetector = new ScaleGestureDetector(this,new ScaleListener());
 
 
         TextView link               = findViewById( R.id.link );
@@ -73,10 +78,33 @@ public class SecondMain extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+
+
+
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        scaleGestureDetector.onTouchEvent(motionEvent);
+        return true;
 
 
 
     }
+
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector scaleGestureDetector){
+            scaleFactor *= scaleGestureDetector.getScaleFactor();
+            scaleFactor  =   Math.max(0.1f, Math.min(scaleFactor, 10.0f));
+
+            imageView.setScaleX(scaleFactor);
+            imageView.setScaleY(scaleFactor);
+            return true;
+        }
+    }
+
+
+
 
     @SuppressLint("StaticFieldLeak")
     private class DownloadImageFromURL extends AsyncTask<String, Void, Bitmap> {
@@ -90,12 +118,14 @@ public class SecondMain extends AppCompatActivity {
         @Override
         protected Bitmap doInBackground(String... urls) {
             String imageURL = urls[0];
-            Bitmap bimage = null;
-            try {
-                InputStream in = new java.net.URL(imageURL).openStream();
-                bimage = BitmapFactory.decodeStream(in);
+            Bitmap bimage   = null;
+            InputStream inputStream;
 
-            } catch (Exception e) {
+            try {
+                inputStream = new java.net.URL(imageURL).openStream();
+                bimage      = BitmapFactory.decodeStream(inputStream);
+            }
+            catch (Exception e) {
                 Log.e("Error Message", e.getMessage());
                 e.printStackTrace();
             }
